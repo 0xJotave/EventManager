@@ -1,0 +1,75 @@
+@startuml
+
+title Purchase Flow
+
+' ==== DEFINITIONS ====
+actor "Client" as Client
+
+box "MS1 - GATEWAY SERVICE" #F5F5F5
+    participant "PurchaseController" as Controller
+    participant "PurchaseService" as Service
+    participant "PurchaseKafkaProducer" as Producer
+endbox
+
+queue "Kafka Broker" as Broker #Orange
+
+box "MS2 - CORE SERVICE" #FFF3E0
+    participant "PurchaseKafkaConsumer" as Consumer
+    participant "ProcessMapper" as ProcMapper #LightGreen
+    participant "ProcessPurchaseService" as Process
+    participant "PurchaseRepository" as Repository
+endbox
+
+database "MongoDB" as DB #LightBlue
+
+' ==== ACTIONS ====
+
+' --- MS1: GATEWAY SERVICE ---
+Client -> Controller : POST /api/v1/purchase (dados)
+activate Controller
+
+Controller -> Service : Pede para realizar a Compra
+activate Service
+
+Service -> Producer : Valida e Enviar a Requisição
+activate Producer
+
+Producer -> Broker : Envia a Mensagem
+activate Broker
+
+Producer --> Service : (Sucesso)
+deactivate Producer
+
+Service --> Controller : Sucesso (Retorna uma Domain)
+deactivate Service
+
+Controller -> Client : 202 Accepted
+deactivate Controller
+
+' --- MS2: CORE SERVICE ---
+Broker -> Consumer : Consome a mensagem
+deactivate Broker
+activate Consumer
+
+Consumer -> ProcMapper : toDomain(DTO)
+activate ProcMapper
+ProcMapper --> Consumer : Purchase [Domain]
+deactivate ProcMapper
+
+Consumer -> Process : Finaliza a Compra
+activate Process
+deactivate Consumer
+
+Process -> ProcMapper : toEntity(Domain)
+activate ProcMapper
+ProcMapper --> Process : TicketEntity
+deactivate ProcMapper
+
+Process -> Repository : Save [Entity]
+activate Repository
+deactivate Process
+
+Repository -> DB : persist
+deactivate Repository
+
+@enduml
