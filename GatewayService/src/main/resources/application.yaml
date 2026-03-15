@@ -4,3 +4,6 @@ spring:
 
 server:
   port: 8080
+
+core-service:
+  url: http://localhost:8081
