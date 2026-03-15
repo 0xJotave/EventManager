@@ -1,5 +1,6 @@
 package com.eventmanager.coreservice.application.port.inbound;
 
+import com.eventmanager.coreservice.adapter.dto.UpdateEventDTO;
 import com.eventmanager.coreservice.domain.model.Event;
 
 import java.util.List;
@@ -11,7 +12,9 @@ public interface EventServicePort {
 
     List<Event> findAllEvents();
 
-    Event updateAvailableTickets(String eventId, String ticketId, int quantity);
+    Event updateStock(String eventId, String ticketId, int quantity);
+
+    Event updateEventInfo(String eventId, UpdateEventDTO eventUpdateDTO);
 
     void deleteEvent(String eventId);
 }
