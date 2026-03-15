@@ -1,0 +1,50 @@
+# --- JAVA & MAVEN ---
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# --- INTELLIJ ---
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+gen/
+
+# --- VS CODE ---
+.vscode/
+.history/
+*.code-workspace
+
+# --- LOGS & TEMP ---
+*.log
+logs/
+temp/
+tmp/
+
+# --- OS SPECIFIC ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- LOCAL CONFIGS (IMPORTANT) ---
+*.properties
+*.yaml
+*.yml
+!**/src/main/resources/*.yml
+!**/src/main/resources/*.properties
+.env
+.env.local
+
+# --- INFRA (DOCKER & DATA) ---
+.docker/
+docker-data/
+mysql-data/
+postgres-data/
+infra/data/
+*.pid
