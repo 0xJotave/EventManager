@@ -15,4 +15,7 @@ public class TicketDocument {
     private BigDecimal price;
     private Integer totalQuantity;
     private Integer availableQuantity;
+    private Integer currentBatch;
+    private Integer soldQuantity;
+    private BigDecimal basePrice;
 }

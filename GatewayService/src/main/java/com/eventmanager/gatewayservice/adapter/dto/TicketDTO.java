@@ -7,6 +7,7 @@ public record TicketDTO(
         String type,
         BigDecimal price,
         Integer totalQuantity,
-        Integer availableQuantity
+        Integer availableQuantity,
+        Integer currentBatch
 ) {
 }

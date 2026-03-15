@@ -12,7 +12,7 @@ public interface EventRepositoryAdapterPort {
 
     List<Event> findAllEvents();
 
-    boolean eventExistsById(String eventId);
+    boolean eventExistsByName(String eventName);
 
     void deleteEventById(String eventId);
 }

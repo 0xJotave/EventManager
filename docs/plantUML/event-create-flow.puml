@@ -1,0 +1,121 @@
+@startuml
+
+title Event Create Flow
+autonumber
+
+' ==== DEFINITIONS ====
+actor "Client" as Client
+
+box "MS1 - GATEWAY SERVICE" #F5F5F5
+    participant "GatewayEventController" as GatewayController #IndianRed
+    participant "EventClient" as EventClient
+endbox
+
+box "MS2 - CORE SERVICE" #FFF3E0
+    participant "EventController" as Controller #IndianRed
+    participant "EventMapper" as Mapper #LightGreen
+    participant "EventService" as Service
+    participant "EventRepository" as Repository
+endbox
+
+database "MongoDB" as DB #LightBlue
+
+' ==== ACTIONS ====
+
+' --- MS1: GATEWAY SERVICE ---
+Client -> GatewayController : POST /gateway/events
+
+note right of Client
+{
+  "name": "Rock Festival",
+  "date": "2027-01-10T20:00",
+  "location": "São Paulo",
+  "ticketTypes": [
+    {
+      "type": "VIP",
+      "price": 500,
+      "quantity": 100
+    }
+  ]
+}
+end note
+
+activate GatewayController
+
+GatewayController -> EventClient : Forward request
+activate EventClient
+
+EventClient -> Controller : POST /api/v1/events
+activate Controller
+
+' --- MS2: CORE SERVICE (Internal Logic) ---
+
+' -- APPLICATION LAYER --
+Controller -> Mapper: toDomain(CreateEventDTO)
+activate Mapper
+Mapper --> Controller: Event (domain)
+deactivate Mapper
+
+Controller -> Service: createEvent(event)
+activate Service
+
+' -- DOMAIN LOGIC --
+Service -> Repository: eventExistsByName(eventName)
+activate Repository
+Repository --> Service: boolean
+deactivate Repository
+
+alt event already exists
+    Service --> Controller: throw EventAlreadyExistsException
+    deactivate Service
+    Controller --> EventClient: HTTP 409 Conflict
+    deactivate Controller
+    EventClient --> GatewayController: Forward error
+    deactivate EventClient
+    GatewayController --> Client: HTTP 409 Conflict
+    deactivate GatewayController
+end
+
+Service -> Repository: save(event)
+activate Service
+activate Repository
+
+Repository -> Mapper: toDocument(event)
+activate Mapper
+Mapper --> Repository: eventDocument
+deactivate Mapper
+
+' -- INFRASTRUCTURE LAYER --
+Repository -> DB: save(eventDocument)
+activate DB
+DB --> Repository: Document stored
+deactivate DB
+
+' --- RETURN RESPONSE ---
+Repository --> Service: Event (domain)
+deactivate Repository
+
+Service --> Controller: Event (domain)
+deactivate Service
+activate Controller
+
+
+Controller -> Mapper: toDTO(event)
+activate Mapper
+Mapper --> Controller: ResponseEventDTO
+deactivate Mapper
+
+Controller -> EventClient: 201 Created
+deactivate Controller
+activate EventClient
+
+
+' --- BACK TO GATEWAY ---
+EventClient -> GatewayController: Forward response
+deactivate EventClient
+activate GatewayController
+
+GatewayController -> Client: 201 Created + EventResponse
+deactivate GatewayController
+
+@enduml
