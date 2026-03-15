@@ -46,3 +46,5 @@ desktop.ini
 docker-data/
 mysql-data/
 postgres-data/
+infra/data/
+*.pid
