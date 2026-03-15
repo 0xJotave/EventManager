@@ -36,8 +36,8 @@ public class EventRepositoryAdapter implements EventRepositoryAdapterPort {
     }
 
     @Override
-    public boolean eventExistsById(String eventId) {
-        return eventRepository.existsById(eventId);
+    public boolean eventExistsByName(String eventName) {
+        return eventRepository.existsByName(eventName);
     }
 
     @Override
