@@ -1,0 +1,96 @@
+@startuml
+
+title Event Create Flow
+autonumber
+
+' ==== DEFINITIONS ====
+actor "Client" as Client
+
+box "MS1 - GATEWAY SERVICE" #F5F5F5
+    participant "GatewayEventController" as GatewayController
+    participant "EventClient" as EventWC
+endbox
+
+box "MS2 - CORE SERVICE" #FFF3E0
+    participant "EventController" as Controller
+    participant "EventMapper" as Mapper
+    participant "EventService" as Service
+    participant "EventRepository" as Repository
+endbox
+
+database "MongoDB" as DB #LightBlue
+
+' ==== ACTIONS ====
+
+' ==== GOING ====
+
+' --- MS1: GATEWAY SERVICE ---
+Client -> GatewayController : Send event creation request
+activate GatewayController
+
+note right of GatewayController
+
+POST /gateway/events
+
+{
+  "name": "Rock Festival",
+  "date": "2027-01-10T20:00",
+  "location": "São Paulo",
+  "ticketTypes": [
+    {
+      "type": "VIP",
+      "price": 500,
+      "quantity": 100
+    }
+  ]
+}
+
+end note
+
+GatewayController -> EventWC : Validate request and forward to Core Service
+activate EventWC
+EventWC -> Controller : Forward event creation request
+note right of EventWC: POST /api/v1/events
+
+
+' --- MS2: CORE SERVICE ---
+activate Controller
+Controller -> Mapper: Convert request DTO to domain entity
+activate Mapper
+Mapper --> Controller: Domain Event
+deactivate Mapper
+Controller -> Service: Send event for business processing
+
+activate Service
+Service -> Mapper: Convert domain event to persistence document
+activate Mapper
+Mapper --> Service: EventDocument
+deactivate Mapper
+Service -> Repository: Request event persistence
+
+activate Repository
+Repository -> DB: Insert EventDocument
+activate DB
+
+
+' ==== COMING BACK ====
+
+DB -> Repository: EventDocument stored
+deactivate DB
+
+Repository -> Service: Persisted EventDocument
+deactivate Repository
+
+Service -> Controller: Event successfully created
+deactivate Service
+
+Controller -> EventWC: Return created event response
+deactivate Controller
+
+EventWC -> GatewayController: Forward response to gateway
+deactivate EventWC
+
+GatewayController -> Client: Return HTTP 201 Created + EventResponse
+deactivate GatewayController
+
+@enduml
