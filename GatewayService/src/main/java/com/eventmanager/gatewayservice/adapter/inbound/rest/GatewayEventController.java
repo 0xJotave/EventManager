@@ -2,6 +2,7 @@ package com.eventmanager.gatewayservice.adapter.inbound.rest;
 
 import com.eventmanager.gatewayservice.adapter.dto.EventRequestDTO;
 import com.eventmanager.gatewayservice.adapter.dto.EventResponseDTO;
+import com.eventmanager.gatewayservice.adapter.dto.UpdateEventDTO;
 import com.eventmanager.gatewayservice.application.port.outbound.EventClientPort;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,10 +33,16 @@ public class GatewayEventController {
     }
 
     @PatchMapping("/{eventId}/tickets/{ticketId}")
-    public Mono<EventResponseDTO> updateAvailableTickets(@PathVariable String eventId,
-                                               @PathVariable String ticketId,
-                                               @RequestParam int quantity) {
-        return eventClientPort.updateAvailableTickets(eventId, ticketId, quantity);
+    public Mono<EventResponseDTO> updateStock(@PathVariable String eventId,
+                                              @PathVariable String ticketId,
+                                              @RequestParam int quantity) {
+        return eventClientPort.updateStock(eventId, ticketId, quantity);
+    }
+
+    @PatchMapping("/{eventId}")
+    public Mono<EventResponseDTO> updateEventInfo(@PathVariable String eventId,
+                                                  @RequestBody UpdateEventDTO eventUpdatedDTO) {
+        return eventClientPort.updateEventInfo(eventId, eventUpdatedDTO);
     }
 
     @DeleteMapping("/{eventId}")

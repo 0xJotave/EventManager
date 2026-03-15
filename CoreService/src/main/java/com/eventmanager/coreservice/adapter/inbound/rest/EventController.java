@@ -2,6 +2,7 @@ package com.eventmanager.coreservice.adapter.inbound.rest;
 
 import com.eventmanager.coreservice.adapter.dto.CreateEventDTO;
 import com.eventmanager.coreservice.adapter.dto.ResponseEventDTO;
+import com.eventmanager.coreservice.adapter.dto.UpdateEventDTO;
 import com.eventmanager.coreservice.adapter.mapper.EventMapper;
 import com.eventmanager.coreservice.application.port.inbound.EventServicePort;
 import com.eventmanager.coreservice.domain.model.Event;
@@ -39,11 +40,18 @@ public class EventController {
     }
 
     @PatchMapping("/{eventId}/tickets/{ticketId}")
-    public ResponseEntity<ResponseEventDTO> updateAvailableTickets(@PathVariable String eventId,
-                                                                   @PathVariable String ticketId,
-                                                                   @RequestParam int quantity) {
-        Event updated = eventServicePort.updateAvailableTickets(eventId, ticketId, quantity);
-        return ResponseEntity.ok(eventMapper.toDTO(updated));
+    public ResponseEntity<ResponseEventDTO> updateStock(@PathVariable String eventId,
+                                                        @PathVariable String ticketId,
+                                                        @RequestParam int quantity) {
+        Event updatedEvent = eventServicePort.updateStock(eventId, ticketId, quantity);
+        return ResponseEntity.ok(eventMapper.toDTO(updatedEvent));
+    }
+
+    @PatchMapping("/{eventId}")
+    public ResponseEntity<ResponseEventDTO> updateEventInfo(@PathVariable String eventId,
+                                                            @RequestBody UpdateEventDTO updatedEventDTO) {
+        Event updatedEvent = eventServicePort.updateEventInfo(eventId, updatedEventDTO);
+        return ResponseEntity.ok(eventMapper.toDTO(updatedEvent));
     }
 
     @DeleteMapping("/{eventId}")

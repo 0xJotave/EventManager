@@ -1,6 +1,7 @@
 package com.eventmanager.coreservice.domain.model;
 
 import com.eventmanager.coreservice.domain.exception.InsufficientTicketsException;
+import com.eventmanager.coreservice.domain.exception.TicketNotFound;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,18 +24,23 @@ public class Event {
     public Event() {
     }
 
-    public void updateTicketQuantity(String ticketId, int quantity) {
-        this.ticketTypes.stream()
+    public void processSale(String ticketId, int quantity) {
+        Ticket ticket = findTicketById(ticketId);
+        ticket.applySale(quantity);
+    }
+
+    public void processReturn(String ticketId, int quantity) {
+        Ticket ticket = findTicketById(ticketId);
+        ticket.returnTicket(quantity);
+    }
+
+    private Ticket findTicketById(String ticketId) {
+        return this.ticketTypes.stream()
                 .filter(t -> t.getTicketId().equals(ticketId))
                 .findFirst()
-                .ifPresent(t -> {
-                    int newQuantity = t.getAvailableQuantity() + quantity;
-                    if (newQuantity < 0) {
-                        throw new InsufficientTicketsException("Insufficient tickets available");
-                    }
-                    t.setAvailableQuantity(newQuantity);
-                });
+                .orElseThrow(() -> new TicketNotFound("Ticket Not Found: " + ticketId));
     }
+
 
     public String getEventId() {
         return eventId;

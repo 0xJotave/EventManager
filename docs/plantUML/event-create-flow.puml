@@ -7,13 +7,13 @@ autonumber
 actor "Client" as Client
 
 box "MS1 - GATEWAY SERVICE" #F5F5F5
-    participant "GatewayEventController" as GatewayController
-    participant "EventClient" as EventWC
+    participant "GatewayEventController" as GatewayController #IndianRed
+    participant "EventClient" as EventClient
 endbox
 
 box "MS2 - CORE SERVICE" #FFF3E0
-    participant "EventController" as Controller
-    participant "EventMapper" as Mapper
+    participant "EventController" as Controller #IndianRed
+    participant "EventMapper" as Mapper #LightGreen
     participant "EventService" as Service
     participant "EventRepository" as Repository
 endbox
@@ -22,16 +22,10 @@ database "MongoDB" as DB #LightBlue
 
 ' ==== ACTIONS ====
 
-' ==== GOING ====
-
 ' --- MS1: GATEWAY SERVICE ---
-Client -> GatewayController : Send event creation request
-activate GatewayController
+Client -> GatewayController : POST /gateway/events
 
-note right of GatewayController
-
-POST /gateway/events
-
+note right of Client
 {
   "name": "Rock Festival",
   "date": "2027-01-10T20:00",
@@ -44,53 +38,84 @@ POST /gateway/events
     }
   ]
 }
-
 end note
 
-GatewayController -> EventWC : Validate request and forward to Core Service
-activate EventWC
-EventWC -> Controller : Forward event creation request
-note right of EventWC: POST /api/v1/events
+activate GatewayController
 
+GatewayController -> EventClient : Forward request
+activate EventClient
 
-' --- MS2: CORE SERVICE ---
+EventClient -> Controller : POST /api/v1/events
 activate Controller
-Controller -> Mapper: Convert request DTO to domain entity
-activate Mapper
-Mapper --> Controller: Domain Event
-deactivate Mapper
-Controller -> Service: Send event for business processing
 
+' --- MS2: CORE SERVICE (Internal Logic) ---
+
+' -- APPLICATION LAYER --
+Controller -> Mapper: toDomain(CreateEventDTO)
+activate Mapper
+Mapper --> Controller: Event (domain)
+deactivate Mapper
+
+Controller -> Service: createEvent(event)
 activate Service
-Service -> Mapper: Convert domain event to persistence document
-activate Mapper
-Mapper --> Service: EventDocument
-deactivate Mapper
-Service -> Repository: Request event persistence
 
+' -- DOMAIN LOGIC --
+Service -> Repository: eventExistsByName(eventName)
 activate Repository
-Repository -> DB: Insert EventDocument
-activate DB
-
-
-' ==== COMING BACK ====
-
-DB -> Repository: EventDocument stored
-deactivate DB
-
-Repository -> Service: Persisted EventDocument
+Repository --> Service: boolean
 deactivate Repository
 
-Service -> Controller: Event successfully created
+alt event already exists
+    Service --> Controller: throw EventAlreadyExistsException
+    deactivate Service
+    Controller --> EventClient: HTTP 409 Conflict
+    deactivate Controller
+    EventClient --> GatewayController: Forward error
+    deactivate EventClient
+    GatewayController --> Client: HTTP 409 Conflict
+    deactivate GatewayController
+end
+
+Service -> Repository: save(event)
+activate Service
+activate Repository
+
+Repository -> Mapper: toDocument(event)
+activate Mapper
+Mapper --> Repository: eventDocument
+deactivate Mapper
+
+' -- INFRASTRUCTURE LAYER --
+Repository -> DB: save(eventDocument)
+activate DB
+DB --> Repository: Document stored
+deactivate DB
+
+' --- RETURN RESPONSE ---
+Repository --> Service: Event (domain)
+deactivate Repository
+
+Service --> Controller: Event (domain)
 deactivate Service
+activate Controller
 
-Controller -> EventWC: Return created event response
+
+Controller -> Mapper: toDTO(event)
+activate Mapper
+Mapper --> Controller: ResponseEventDTO
+deactivate Mapper
+
+Controller -> EventClient: 201 Created
 deactivate Controller
+activate EventClient
 
-EventWC -> GatewayController: Forward response to gateway
-deactivate EventWC
 
-GatewayController -> Client: Return HTTP 201 Created + EventResponse
+' --- BACK TO GATEWAY ---
+EventClient -> GatewayController: Forward response
+deactivate EventClient
+activate GatewayController
+
+GatewayController -> Client: 201 Created + EventResponse
 deactivate GatewayController
 
 @enduml
