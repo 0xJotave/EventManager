@@ -16,7 +16,7 @@ public record CreateEventDTO(
 
         @NotNull(message = "The event date is required.")
         @Future(message = "The date must be in the future.")
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
         LocalDateTime date,
 
         @NotBlank(message = "Location is mandatory")
