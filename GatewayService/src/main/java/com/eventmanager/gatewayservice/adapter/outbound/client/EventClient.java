@@ -4,18 +4,23 @@ import com.eventmanager.gatewayservice.adapter.dto.EventRequestDTO;
 import com.eventmanager.gatewayservice.adapter.dto.EventResponseDTO;
 import com.eventmanager.gatewayservice.adapter.dto.UpdateEventDTO;
 import com.eventmanager.gatewayservice.application.port.outbound.EventClientPort;
+import com.eventmanager.gatewayservice.application.port.outbound.RedisServicePort;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @Component
 public class EventClient implements EventClientPort {
 
     private final WebClient webClient;
+    private final RedisServicePort redisServicePort;
 
-    public EventClient(WebClient.Builder builder) {
+    public EventClient(WebClient.Builder builder, RedisServicePort redisServicePort) {
         this.webClient = builder.build();
+        this.redisServicePort = redisServicePort;
     }
 
     @Override
@@ -29,10 +34,24 @@ public class EventClient implements EventClientPort {
 
     @Override
     public Mono<EventResponseDTO> findEventById(String eventId) {
-        return webClient.get()
-                .uri("/api/v1/events/{eventId}", eventId)
-                .retrieve()
-                .bodyToMono(EventResponseDTO.class);
+
+        String cacheKey = "event:" + eventId;
+
+        return redisServicePort.get(cacheKey, EventResponseDTO.class)
+                .switchIfEmpty(
+                        Mono.defer(() ->
+                                        webClient.get()
+                                                .uri("/api/v1/events/{eventId}", eventId)
+                                                .retrieve()
+                                                .bodyToMono(EventResponseDTO.class)
+                                )
+                                .timeout(Duration.ofSeconds(2))
+                                .retry(2)
+                                .flatMap(event ->
+                                        redisServicePort.save(cacheKey, event, 10)
+                                                .thenReturn(event)
+                        )
+                );
     }
 
     @Override
@@ -51,7 +70,11 @@ public class EventClient implements EventClientPort {
                         .queryParam("quantity", quantity)
                         .build(eventId, ticketId))
                 .retrieve()
-                .bodyToMono(EventResponseDTO.class);
+                .bodyToMono(EventResponseDTO.class)
+                .flatMap(response ->
+                        redisServicePort.evict("event:" + eventId)
+                                .thenReturn(response)
+                );
     }
 
     @Override
@@ -60,7 +83,11 @@ public class EventClient implements EventClientPort {
                 .uri("/api/v1/events/{eventId}", eventId)
                 .bodyValue(eventUpdatedDTO)
                 .retrieve()
-                .bodyToMono(EventResponseDTO.class);
+                .bodyToMono(EventResponseDTO.class)
+                .flatMap(response ->
+                        redisServicePort.evict("event:" + eventId)
+                                .thenReturn(response)
+                );
     }
 
     @Override
@@ -68,6 +95,7 @@ public class EventClient implements EventClientPort {
         return webClient.delete()
                 .uri("/api/v1/events/{eventId}", eventId)
                 .retrieve()
-                .bodyToMono(Void.class);
+                .bodyToMono(Void.class)
+                .then(redisServicePort.evict("event:" + eventId));
     }
 }

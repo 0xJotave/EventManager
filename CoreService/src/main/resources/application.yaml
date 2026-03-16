@@ -1,7 +1,8 @@
 spring:
   application:
     name: CoreService
-  mongodb:
-    uri: mongodb://localhost:27017/eventManagerDB
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/eventManagerDB
 server:
   port: 8081
