@@ -3,6 +3,7 @@ package com.eventmanager.coreservice.application.usecase;
 import com.eventmanager.coreservice.adapter.dto.UpdateEventDTO;
 import com.eventmanager.coreservice.application.port.inbound.EventServicePort;
 import com.eventmanager.coreservice.application.port.outbound.EventRepositoryAdapterPort;
+import com.eventmanager.coreservice.application.port.outbound.RedisServicePort;
 import com.eventmanager.coreservice.domain.exception.EventAlreadyExists;
 import com.eventmanager.coreservice.domain.exception.EventNotFound;
 import com.eventmanager.coreservice.domain.model.Event;
@@ -10,13 +11,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class EventService implements EventServicePort {
 
     private final EventRepositoryAdapterPort eventRepositoryAdapterPort;
+    private final RedisServicePort redisServicePort;
 
     @Override
     public Event createEvent(Event event) {
@@ -28,8 +29,15 @@ public class EventService implements EventServicePort {
 
     @Override
     public Event findEventById(String eventId) {
-        return eventRepositoryAdapterPort.findEventById(eventId)
-                .orElseThrow(() -> new EventNotFound("Event Not Found"));
+        String cacheKey = "core:event:" + eventId;
+        return redisServicePort.get(cacheKey, Event.class)
+                .orElseGet(() -> {
+                    Event event = eventRepositoryAdapterPort.findEventById(eventId)
+                            .orElseThrow(() -> new EventNotFound("Event Not Found"));
+                    redisServicePort.save(cacheKey, event, 10);
+
+                    return event;
+                });
     }
 
     @Override
@@ -47,6 +55,7 @@ public class EventService implements EventServicePort {
             event.processReturn(ticketId, Math.abs(quantity));
         }
 
+        redisServicePort.evict("core:event:" + eventId);
         return eventRepositoryAdapterPort.saveEvent(event);
     }
 
@@ -58,11 +67,13 @@ public class EventService implements EventServicePort {
         if (eventUpdateDTO.date() != null) event.setDate(eventUpdateDTO.date());
         if (eventUpdateDTO.location() != null) event.setLocation(eventUpdateDTO.location());
 
+        redisServicePort.evict("core:event:" + eventId);
         return eventRepositoryAdapterPort.saveEvent(event);
     }
 
     @Override
     public void deleteEvent(String eventId) {
         eventRepositoryAdapterPort.deleteEventById(eventId);
+        redisServicePort.evict("core:event:" + eventId);
     }
 }
