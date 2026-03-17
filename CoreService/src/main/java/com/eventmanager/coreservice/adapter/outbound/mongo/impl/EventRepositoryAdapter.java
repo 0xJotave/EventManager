@@ -21,8 +21,7 @@ public class EventRepositoryAdapter implements EventRepositoryAdapterPort {
     @Override
     public Event saveEvent(Event event) {
         EventDocument eventDocument = eventMapper.toDocument(event);
-        EventDocument savedDocument = eventRepository.save(eventDocument);
-        return eventMapper.toDomain(savedDocument);
+        return eventMapper.toDomain(eventRepository.save(eventDocument));
     }
 
     @Override

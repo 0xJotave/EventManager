@@ -6,6 +6,7 @@ import com.eventmanager.coreservice.adapter.dto.UpdateEventDTO;
 import com.eventmanager.coreservice.adapter.mapper.EventMapper;
 import com.eventmanager.coreservice.application.port.inbound.EventServicePort;
 import com.eventmanager.coreservice.domain.model.Event;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class EventController {
     private final EventMapper eventMapper;
 
     @PostMapping()
-    public ResponseEntity<ResponseEventDTO> createEvent(@RequestBody CreateEventDTO eventDTO) {
+    public ResponseEntity<ResponseEventDTO> createEvent(@RequestBody @Valid CreateEventDTO eventDTO) {
         Event event = eventMapper.toDomain(eventDTO);
         Event createdEvent = eventServicePort.createEvent(event);
         return ResponseEntity.status(HttpStatus.CREATED).body(eventMapper.toDTO(createdEvent));
@@ -49,7 +50,7 @@ public class EventController {
 
     @PatchMapping("/{eventId}")
     public ResponseEntity<ResponseEventDTO> updateEventInfo(@PathVariable String eventId,
-                                                            @RequestBody UpdateEventDTO updatedEventDTO) {
+                                                            @RequestBody @Valid UpdateEventDTO updatedEventDTO) {
         Event updatedEvent = eventServicePort.updateEventInfo(eventId, updatedEventDTO);
         return ResponseEntity.ok(eventMapper.toDTO(updatedEvent));
     }

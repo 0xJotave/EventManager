@@ -25,8 +25,10 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
-      CLUSTER_ID: "eventManager-cluster-id-123"
+      CLUSTER_ID: "C2cfWp6syIH5icHMUoA0Jg"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - ./data/kafka:/var/lib/kafka/data
     networks:
       - event-network
 
@@ -48,6 +50,8 @@ services:
     container_name: event-redis
     ports:
       - "6379:6379"
+    volumes:
+      - ./data/redis:/data
     networks:
       - event-network
 

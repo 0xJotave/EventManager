@@ -1,7 +1,6 @@
 package com.eventmanager.coreservice.domain.model;
 
-import com.eventmanager.coreservice.domain.exception.InsufficientTicketsException;
-import com.eventmanager.coreservice.domain.exception.TicketNotFound;
+import com.eventmanager.coreservice.domain.exception.TicketNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +37,7 @@ public class Event {
         return this.ticketTypes.stream()
                 .filter(t -> t.getTicketId().equals(ticketId))
                 .findFirst()
-                .orElseThrow(() -> new TicketNotFound("Ticket Not Found: " + ticketId));
+                .orElseThrow(() -> new TicketNotFoundException("Ticket Not Found: " + ticketId));
     }
 
 

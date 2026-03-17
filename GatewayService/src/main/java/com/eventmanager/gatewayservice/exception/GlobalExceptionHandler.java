@@ -19,15 +19,21 @@ public class GlobalExceptionHandler {
             ServerHttpRequest request
     ) {
 
-        log.error("CoreService returned error: status={}, body={}",
+        ErrorResponse coreError = ex.getResponseBodyAs(ErrorResponse.class);
+
+        String message = (coreError != null && coreError.getMessage() != null)
+                ? coreError.getMessage()
+                : "Error returned from Core Service";
+
+        log.error("CoreService returned error: status={}, message={}",
                 ex.getStatusCode(),
-                ex.getResponseBodyAsString()
+                message
         );
 
         ErrorResponse error = new ErrorResponse(
                 ex.getStatusCode().value(),
                 "CORE_SERVICE_ERROR",
-                "Error returned from Core Service",
+                message,
                 request.getURI().getPath()
         );
 
