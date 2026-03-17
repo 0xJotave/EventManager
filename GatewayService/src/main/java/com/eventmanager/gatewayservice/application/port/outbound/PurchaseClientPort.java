@@ -12,4 +12,6 @@ public interface PurchaseClientPort {
     Flux<PurchaseResponseDTO> findPurchasesByEvent(String eventId);
 
     Mono<Void> cancelPurchase(String purchaseId);
+
+    Flux<PurchaseResponseDTO> findPurchasesByCustomer(String customerName);
 }

@@ -42,4 +42,12 @@ public class PurchaseController {
                 .map(purchaseMapper::toDTO)
                 .toList());
     }
+
+    @GetMapping("/customer")
+    public ResponseEntity<List<ResponsePurchaseDTO>> findPurchasesByCustomer(@RequestParam String customerName) {
+        return ResponseEntity.ok(purchaseServicePort.findPurchasesByCustomer(customerName)
+                .stream()
+                .map(purchaseMapper::toDTO)
+                .toList());
+    }
 }

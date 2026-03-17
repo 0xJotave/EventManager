@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PurchaseRepository extends MongoRepository<PurchaseDocument, String> {
     List<PurchaseDocument> findPurchaseDocumentsByEventId(String eventId);
+    List<PurchaseDocument> findPurchaseDocumentsByCustomerName(String customerName);
 }
