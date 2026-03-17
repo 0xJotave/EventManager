@@ -6,6 +6,9 @@ import com.eventmanager.gatewayservice.application.port.outbound.PurchaseClientP
 import com.eventmanager.gatewayservice.application.port.outbound.PurchaseServicePort;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,9 +24,13 @@ public class GatewayPurchaseController {
     public Mono<PurchaseResponseDTO> createPurchase(
             @PathVariable String eventId,
             @PathVariable String ticketId,
-            @Valid @RequestBody PurchaseRequestDTO purchaseDTO) {
+            @Valid @RequestBody PurchaseRequestDTO purchaseDTO,
+            Authentication authentication) {
 
-        return purchaseServicePort.execute(eventId, ticketId, purchaseDTO);
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String username = jwt.getClaimAsString("preferred_username");
+
+        return purchaseServicePort.execute(eventId, ticketId, purchaseDTO, username);
     }
 
     @GetMapping("/{purchaseId}")
@@ -44,5 +51,13 @@ public class GatewayPurchaseController {
     @DeleteMapping("/{purchaseId}")
     public Mono<Void> cancelPurchase(@PathVariable String purchaseId) {
         return purchaseClientPort.cancelPurchase(purchaseId);
+    }
+
+    @GetMapping("/my-orders")
+    public Flux<PurchaseResponseDTO> getMyOrders(Authentication authentication) {
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        String username = jwt.getClaimAsString("preferred_username");
+
+        return purchaseServicePort.getMyPurchases(username);
     }
 }

@@ -15,4 +15,6 @@ public interface PurchaseRepositoryAdapterPort {
     List<Purchase> findAllPurchases();
 
     List<Purchase> findPurchasesByEvent(String eventId);
+
+    List<Purchase> findPurchasesByCustomerName(String customerName);
 }
