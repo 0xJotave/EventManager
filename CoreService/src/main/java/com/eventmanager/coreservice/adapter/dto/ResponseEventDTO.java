@@ -1,7 +1,5 @@
 package com.eventmanager.coreservice.adapter.dto;
 
-import com.eventmanager.coreservice.domain.model.Ticket;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
