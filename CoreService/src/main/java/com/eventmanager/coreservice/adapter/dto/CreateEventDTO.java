@@ -1,6 +1,5 @@
 package com.eventmanager.coreservice.adapter.dto;
 
-import com.eventmanager.coreservice.domain.model.Ticket;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;

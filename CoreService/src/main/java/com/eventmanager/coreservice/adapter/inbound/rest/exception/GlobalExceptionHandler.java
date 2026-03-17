@@ -4,17 +4,17 @@ import com.eventmanager.coreservice.domain.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(EventNotFound.class)
+    @ExceptionHandler(EventNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEventNotFound(
-            EventNotFound ex,
+            EventNotFoundException ex,
             HttpServletRequest request
     ) {
 
@@ -29,9 +29,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-    @ExceptionHandler(EventAlreadyExists.class)
+    @ExceptionHandler(EventAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEventAlreadyExists(
-            EventAlreadyExists ex,
+            EventAlreadyExistsException ex,
             HttpServletRequest request
     ) {
 
@@ -46,9 +46,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
-    @ExceptionHandler(InvalidEventData.class)
+    @ExceptionHandler(InvalidEventDataException.class)
     public ResponseEntity<ErrorResponse> handleInvalidEventData(
-            InvalidEventData ex,
+            InvalidEventDataException ex,
             HttpServletRequest request
     ) {
 
@@ -63,9 +63,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    @ExceptionHandler(EventSoldOut.class)
+    @ExceptionHandler(EventSoldOutException.class)
     public ResponseEntity<ErrorResponse> handleEventSoldOut(
-            EventSoldOut ex,
+            EventSoldOutException ex,
             HttpServletRequest request
     ) {
 

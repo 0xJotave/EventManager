@@ -8,9 +8,14 @@ import reactor.core.publisher.Mono;
 
 public interface EventClientPort {
     Mono<EventResponseDTO> postEvent(EventRequestDTO eventDTO);
+
     Mono<EventResponseDTO> findEventById(String eventId);
+
     Flux<EventResponseDTO> findAllEvents();
+
     Mono<EventResponseDTO> updateStock(String eventId, String ticketId, int quantity);
+
     Mono<EventResponseDTO> updateEventInfo(String eventId, UpdateEventDTO eventUpdatedDTO);
+
     Mono<Void> deleteEvent(String eventId);
 }

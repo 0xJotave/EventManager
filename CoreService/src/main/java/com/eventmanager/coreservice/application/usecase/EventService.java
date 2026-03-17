@@ -4,8 +4,8 @@ import com.eventmanager.coreservice.adapter.dto.UpdateEventDTO;
 import com.eventmanager.coreservice.application.port.inbound.EventServicePort;
 import com.eventmanager.coreservice.application.port.outbound.EventRepositoryAdapterPort;
 import com.eventmanager.coreservice.application.port.outbound.RedisServicePort;
-import com.eventmanager.coreservice.domain.exception.EventAlreadyExists;
-import com.eventmanager.coreservice.domain.exception.EventNotFound;
+import com.eventmanager.coreservice.domain.exception.EventAlreadyExistsException;
+import com.eventmanager.coreservice.domain.exception.EventNotFoundException;
 import com.eventmanager.coreservice.domain.model.Event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class EventService implements EventServicePort {
     @Override
     public Event createEvent(Event event) {
         if (eventRepositoryAdapterPort.eventExistsByName(event.getName())) {
-            throw new EventAlreadyExists("There is already an event with that name.");
+            throw new EventAlreadyExistsException("There is already an event with that name.");
         }
         return eventRepositoryAdapterPort.saveEvent(event);
     }
@@ -33,7 +33,7 @@ public class EventService implements EventServicePort {
         return redisServicePort.get(cacheKey, Event.class)
                 .orElseGet(() -> {
                     Event event = eventRepositoryAdapterPort.findEventById(eventId)
-                            .orElseThrow(() -> new EventNotFound("Event Not Found"));
+                            .orElseThrow(() -> new EventNotFoundException("Event Not Found"));
                     redisServicePort.save(cacheKey, event, 10);
 
                     return event;

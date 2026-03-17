@@ -50,7 +50,7 @@ public class EventClient implements EventClientPort {
                                 .flatMap(event ->
                                         redisServicePort.save(cacheKey, event, 10)
                                                 .thenReturn(event)
-                        )
+                                )
                 );
     }
 
