@@ -24,6 +24,24 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8082/realms/event-manager-realm
+          jwk-set-uri: http://localhost:8082/realms/event-manager-realm/protocol/openid-connect/certs
+      client:
+        registration:
+          gateway-service:
+            provider: keycloak
+            client-id: gateway-service
+            client-secret: Cq5E18kGVNljkXPD7yXY5BJPbutyStI9
+            authorization-grant-type: authorization_code
+            scope: openid, profile, email
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8082/realms/event-manager-realm
+
 server:
   port: 8080
 

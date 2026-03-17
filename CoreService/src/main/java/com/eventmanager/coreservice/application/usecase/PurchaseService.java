@@ -84,4 +84,9 @@ public class PurchaseService implements PurchaseServicePort {
     public List<Purchase> findPurchasesByEvent(String eventId) {
         return purchaseRepositoryAdapterPort.findPurchasesByEvent(eventId);
     }
+
+    @Override
+    public List<Purchase> findPurchasesByCustomer(String customerName) {
+        return purchaseRepositoryAdapterPort.findPurchasesByCustomerName(customerName);
+    }
 }

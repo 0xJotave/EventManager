@@ -59,4 +59,13 @@ public class PurchaseClient implements PurchaseClientPort {
                 .bodyToMono(Void.class)
                 .then(redisServicePort.evict("purchase:" + purchaseId));
     }
+
+    @Override
+    public Flux<PurchaseResponseDTO> findPurchasesByCustomer(String customerName) {
+        return webClient.get()
+                .uri("/api/v1/purchases/customer?customerName={name}", customerName)
+                .retrieve()
+                .bodyToFlux(PurchaseResponseDTO.class);
+    }
+
 }

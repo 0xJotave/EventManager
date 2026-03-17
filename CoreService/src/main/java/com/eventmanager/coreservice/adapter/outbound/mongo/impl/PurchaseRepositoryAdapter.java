@@ -44,4 +44,11 @@ public class PurchaseRepositoryAdapter implements PurchaseRepositoryAdapterPort 
                 .map(purchaseMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<Purchase> findPurchasesByCustomerName(String customerName) {
+        return purchaseRepository.findPurchaseDocumentsByCustomerName(customerName).stream()
+                .map(purchaseMapper::toDomain)
+                .toList();
+    }
 }

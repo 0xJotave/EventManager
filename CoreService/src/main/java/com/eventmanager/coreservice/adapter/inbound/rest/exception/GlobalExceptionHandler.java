@@ -2,6 +2,7 @@ package com.eventmanager.coreservice.adapter.inbound.rest.exception;
 
 import com.eventmanager.coreservice.domain.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -9,108 +10,50 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EventNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEventNotFound(
-            EventNotFoundException ex,
-            HttpServletRequest request
-    ) {
-
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.NOT_FOUND.value(),
-                "EVENT_NOT_FOUND",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    public ResponseEntity<ErrorResponse> handleNotFound(Exception ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), request);
     }
 
-    @ExceptionHandler(EventAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEventAlreadyExists(
-            EventAlreadyExistsException ex,
-            HttpServletRequest request
-    ) {
-
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                "EVENT_ALREADY_EXISTS",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    @ExceptionHandler({
+            EventSoldOutException.class,
+            InsufficientTicketsException.class,
+            EventAlreadyExistsException.class
+    })
+    public ResponseEntity<ErrorResponse> handleConflict(Exception ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.CONFLICT, "BUSINESS_RULE_VIOLATION", ex.getMessage(), request);
     }
 
     @ExceptionHandler(InvalidEventDataException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidEventData(
-            InvalidEventDataException ex,
-            HttpServletRequest request
-    ) {
-
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "INVALID_EVENT_DATA",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-
-    @ExceptionHandler(EventSoldOutException.class)
-    public ResponseEntity<ErrorResponse> handleEventSoldOut(
-            EventSoldOutException ex,
-            HttpServletRequest request
-    ) {
-
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                "EVENT_SOLD_OUT",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-
-    @ExceptionHandler(InsufficientTicketsException.class)
-    public ResponseEntity<ErrorResponse> handleInsufficientTickets(
-            InsufficientTicketsException ex,
-            HttpServletRequest request
-    ) {
-
-        ErrorResponse error = new ErrorResponse(
-                LocalDateTime.now(),
-                HttpStatus.CONFLICT.value(),
-                "INSUFFICIENT_TICKETS",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    public ResponseEntity<ErrorResponse> handleBadRequest(Exception ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "INVALID_DATA", ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception ex,
-            HttpServletRequest request
-    ) {
+    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
+        log.error("Unhandled exception: ", ex);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR",
+                "An unexpected error occurred", request);
+    }
 
-        ErrorResponse error = new ErrorResponse(
+    private ResponseEntity<ErrorResponse> buildResponse(
+            HttpStatus status,
+            String error,
+            String message,
+            HttpServletRequest request) {
+
+        ErrorResponse response = new ErrorResponse(
                 LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "INTERNAL_SERVER_ERROR",
-                ex.getMessage(),
+                status.value(),
+                error,
+                message,
                 request.getRequestURI()
         );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        return ResponseEntity.status(status).body(response);
     }
 }

@@ -14,4 +14,6 @@ public interface PurchaseServicePort {
     List<Purchase> findAllPurchases();
 
     List<Purchase> findPurchasesByEvent(String eventId);
+
+    List<Purchase> findPurchasesByCustomer(String customerName);
 }
