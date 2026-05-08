@@ -1,14 +1,14 @@
 package com.eventmanager.gatewayservice.adapter.inbound.rest;
 
-import com.eventmanager.gatewayservice.adapter.dto.PurchaseRequestDTO;
-import com.eventmanager.gatewayservice.adapter.dto.PurchaseResponseDTO;
+import com.eventmanager.gatewayservice.adapter.dto.purchase.PurchaseRequestDTO;
+import com.eventmanager.gatewayservice.adapter.dto.purchase.PurchaseResponseDTO;
 import com.eventmanager.gatewayservice.application.port.outbound.PurchaseClientPort;
 import com.eventmanager.gatewayservice.application.port.outbound.PurchaseServicePort;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,9 +25,8 @@ public class GatewayPurchaseController {
             @PathVariable String eventId,
             @PathVariable String ticketId,
             @Valid @RequestBody PurchaseRequestDTO purchaseDTO,
-            Authentication authentication) {
+            @AuthenticationPrincipal Jwt jwt) {
 
-        Jwt jwt = (Jwt) authentication.getPrincipal();
         String username = jwt.getClaimAsString("preferred_username");
 
         return purchaseServicePort.execute(eventId, ticketId, purchaseDTO, username);
@@ -54,8 +53,7 @@ public class GatewayPurchaseController {
     }
 
     @GetMapping("/my-orders")
-    public Flux<PurchaseResponseDTO> getMyOrders(Authentication authentication) {
-        Jwt jwt = (Jwt) authentication.getPrincipal();
+    public Flux<PurchaseResponseDTO> getMyOrders(@AuthenticationPrincipal Jwt jwt) {
         String username = jwt.getClaimAsString("preferred_username");
 
         return purchaseServicePort.getMyPurchases(username);

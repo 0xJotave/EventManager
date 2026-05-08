@@ -1,4 +1,4 @@
-package com.eventmanager.gatewayservice.adapter.dto;
+package com.eventmanager.coreservice.adapter.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;

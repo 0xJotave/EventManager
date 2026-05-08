@@ -1,15 +1,20 @@
 package com.eventmanager.gatewayservice.adapter.outbound.client;
 
-import com.eventmanager.gatewayservice.adapter.dto.PurchaseResponseDTO;
+import com.eventmanager.gatewayservice.adapter.dto.purchase.PurchaseResponseDTO;
 import com.eventmanager.gatewayservice.application.port.outbound.PurchaseClientPort;
 import com.eventmanager.gatewayservice.application.port.outbound.RedisServicePort;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 @Component
 public class PurchaseClient implements PurchaseClientPort {
+
     private final WebClient webClient;
     private final RedisServicePort redisServicePort;
 
@@ -23,13 +28,22 @@ public class PurchaseClient implements PurchaseClientPort {
         String cacheKey = "gateway:purchase:" + purchaseId;
 
         return redisServicePort.get(cacheKey, PurchaseResponseDTO.class)
+                .onErrorResume(e -> Mono.empty())
                 .switchIfEmpty(
-                        webClient.get()
-                                .uri("/api/v1/purchases/{purchaseId}", purchaseId)
-                                .retrieve()
-                                .bodyToMono(PurchaseResponseDTO.class)
+                        Mono.defer(() ->
+                                        webClient.get()
+                                                .uri("/api/v1/purchases/{purchaseId}", purchaseId)
+                                                .retrieve()
+                                                .bodyToMono(PurchaseResponseDTO.class)
+                                )
+                                .timeout(Duration.ofSeconds(2))
+                                .retryWhen(
+                                        Retry.backoff(2, Duration.ofMillis(200))
+                                                .filter(ex -> ex instanceof WebClientRequestException)
+                                )
                                 .flatMap(purchase ->
-                                        redisServicePort.save(cacheKey, purchase, 2)
+                                        redisServicePort.save(cacheKey, purchase, 10)
+                                                .onErrorResume(e -> Mono.empty())
                                                 .thenReturn(purchase)
                                 )
                 );
@@ -40,7 +54,12 @@ public class PurchaseClient implements PurchaseClientPort {
         return webClient.get()
                 .uri("/api/v1/purchases")
                 .retrieve()
-                .bodyToFlux(PurchaseResponseDTO.class);
+                .bodyToFlux(PurchaseResponseDTO.class)
+                .timeout(Duration.ofSeconds(3))
+                .retryWhen(
+                        Retry.backoff(2, Duration.ofMillis(200))
+                                .filter(ex -> ex instanceof WebClientRequestException)
+                );
     }
 
     @Override
@@ -48,7 +67,25 @@ public class PurchaseClient implements PurchaseClientPort {
         return webClient.get()
                 .uri("/api/v1/purchases/event/{eventId}", eventId)
                 .retrieve()
-                .bodyToFlux(PurchaseResponseDTO.class);
+                .bodyToFlux(PurchaseResponseDTO.class)
+                .timeout(Duration.ofSeconds(3))
+                .retryWhen(
+                        Retry.backoff(2, Duration.ofMillis(200))
+                                .filter(ex -> ex instanceof WebClientRequestException)
+                );
+    }
+
+    @Override
+    public Flux<PurchaseResponseDTO> findPurchasesByCustomer(String customerName) {
+        return webClient.get()
+                .uri("/api/v1/purchases/customer?customerName={name}", customerName)
+                .retrieve()
+                .bodyToFlux(PurchaseResponseDTO.class)
+                .timeout(Duration.ofSeconds(3))
+                .retryWhen(
+                        Retry.backoff(2, Duration.ofMillis(200))
+                                .filter(ex -> ex instanceof WebClientRequestException)
+                );
     }
 
     @Override
@@ -57,15 +94,9 @@ public class PurchaseClient implements PurchaseClientPort {
                 .uri("/api/v1/purchases/{purchaseId}", purchaseId)
                 .retrieve()
                 .bodyToMono(Void.class)
-                .then(redisServicePort.evict("purchase:" + purchaseId));
+                .then(
+                        redisServicePort.evict("gateway:purchase:" + purchaseId)
+                                .onErrorResume(e -> Mono.empty())
+                );
     }
-
-    @Override
-    public Flux<PurchaseResponseDTO> findPurchasesByCustomer(String customerName) {
-        return webClient.get()
-                .uri("/api/v1/purchases/customer?customerName={name}", customerName)
-                .retrieve()
-                .bodyToFlux(PurchaseResponseDTO.class);
-    }
-
 }

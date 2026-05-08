@@ -1,6 +1,6 @@
 package com.eventmanager.coreservice.adapter.mapper;
 
-import com.eventmanager.coreservice.adapter.dto.TicketDTO;
+import com.eventmanager.coreservice.adapter.dto.event.TicketDTO;
 import com.eventmanager.coreservice.adapter.outbound.mongo.document.TicketDocument;
 import com.eventmanager.coreservice.domain.model.Ticket;
 import org.mapstruct.Mapper;

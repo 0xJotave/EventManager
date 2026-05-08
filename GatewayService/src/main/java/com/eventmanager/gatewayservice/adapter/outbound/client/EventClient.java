@@ -1,14 +1,16 @@
 package com.eventmanager.gatewayservice.adapter.outbound.client;
 
-import com.eventmanager.gatewayservice.adapter.dto.EventRequestDTO;
-import com.eventmanager.gatewayservice.adapter.dto.EventResponseDTO;
-import com.eventmanager.gatewayservice.adapter.dto.UpdateEventDTO;
+import com.eventmanager.gatewayservice.adapter.dto.event.EventRequestDTO;
+import com.eventmanager.gatewayservice.adapter.dto.event.EventResponseDTO;
+import com.eventmanager.gatewayservice.adapter.dto.event.UpdateEventDTO;
 import com.eventmanager.gatewayservice.application.port.outbound.EventClientPort;
 import com.eventmanager.gatewayservice.application.port.outbound.RedisServicePort;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 
@@ -34,10 +36,10 @@ public class EventClient implements EventClientPort {
 
     @Override
     public Mono<EventResponseDTO> findEventById(String eventId) {
-
-        String cacheKey = "event:" + eventId;
+        String cacheKey = "gateway:event:" + eventId;
 
         return redisServicePort.get(cacheKey, EventResponseDTO.class)
+                .onErrorResume(e -> Mono.empty())
                 .switchIfEmpty(
                         Mono.defer(() ->
                                         webClient.get()
@@ -46,9 +48,13 @@ public class EventClient implements EventClientPort {
                                                 .bodyToMono(EventResponseDTO.class)
                                 )
                                 .timeout(Duration.ofSeconds(2))
-                                .retry(2)
+                                .retryWhen(
+                                        Retry.backoff(2, Duration.ofMillis(200))
+                                                .filter(ex -> ex instanceof WebClientRequestException)
+                                )
                                 .flatMap(event ->
                                         redisServicePort.save(cacheKey, event, 10)
+                                                .onErrorResume(e -> Mono.empty())
                                                 .thenReturn(event)
                                 )
                 );
@@ -59,7 +65,12 @@ public class EventClient implements EventClientPort {
         return webClient.get()
                 .uri("/api/v1/events")
                 .retrieve()
-                .bodyToFlux(EventResponseDTO.class);
+                .bodyToFlux(EventResponseDTO.class)
+                .timeout(Duration.ofSeconds(3))
+                .retryWhen(
+                        Retry.backoff(2, Duration.ofMillis(200))
+                                .filter(ex -> ex instanceof WebClientRequestException)
+                );
     }
 
     @Override
@@ -72,7 +83,8 @@ public class EventClient implements EventClientPort {
                 .retrieve()
                 .bodyToMono(EventResponseDTO.class)
                 .flatMap(response ->
-                        redisServicePort.evict("event:" + eventId)
+                        redisServicePort.evict("gateway:event:" + eventId)
+                                .onErrorResume(e -> Mono.empty())
                                 .thenReturn(response)
                 );
     }
@@ -85,7 +97,8 @@ public class EventClient implements EventClientPort {
                 .retrieve()
                 .bodyToMono(EventResponseDTO.class)
                 .flatMap(response ->
-                        redisServicePort.evict("event:" + eventId)
+                        redisServicePort.evict("gateway:event:" + eventId)
+                                .onErrorResume(e -> Mono.empty())
                                 .thenReturn(response)
                 );
     }
@@ -96,6 +109,9 @@ public class EventClient implements EventClientPort {
                 .uri("/api/v1/events/{eventId}", eventId)
                 .retrieve()
                 .bodyToMono(Void.class)
-                .then(redisServicePort.evict("event:" + eventId));
+                .then(
+                        redisServicePort.evict("gateway:event:" + eventId)
+                                .onErrorResume(e -> Mono.empty())
+                );
     }
 }

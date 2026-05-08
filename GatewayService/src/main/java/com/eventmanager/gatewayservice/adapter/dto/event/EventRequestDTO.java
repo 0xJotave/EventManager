@@ -1,4 +1,4 @@
-package com.eventmanager.coreservice.adapter.dto;
+package com.eventmanager.gatewayservice.adapter.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;
@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record CreateEventDTO(
+public record EventRequestDTO(
         @NotBlank(message = "The event name is required")
         String name,
 

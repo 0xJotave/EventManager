@@ -1,6 +1,6 @@
 package com.eventmanager.coreservice.application.port.inbound;
 
-import com.eventmanager.coreservice.adapter.dto.UpdateEventDTO;
+import com.eventmanager.coreservice.adapter.dto.event.UpdateEventDTO;
 import com.eventmanager.coreservice.domain.model.Event;
 
 import java.util.List;

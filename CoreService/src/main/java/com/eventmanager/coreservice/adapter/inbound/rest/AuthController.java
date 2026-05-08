@@ -1,11 +1,10 @@
 package com.eventmanager.coreservice.adapter.inbound.rest;
 
-import com.eventmanager.coreservice.adapter.dto.LoginRequestDTO;
-import com.eventmanager.coreservice.adapter.dto.UserRegistrationDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.LoginRequestDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.LoginResponseDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.UserRegistrationDTO;
 import com.eventmanager.coreservice.application.port.inbound.AuthServicePort;
-import com.eventmanager.coreservice.application.usecase.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,7 +27,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO dto) {
         return ResponseEntity.ok(authServicePort.login(dto));
     }
 }

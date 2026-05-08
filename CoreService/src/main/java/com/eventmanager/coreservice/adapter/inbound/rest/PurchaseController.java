@@ -1,6 +1,6 @@
 package com.eventmanager.coreservice.adapter.inbound.rest;
 
-import com.eventmanager.coreservice.adapter.dto.ResponsePurchaseDTO;
+import com.eventmanager.coreservice.adapter.dto.purchase.ResponsePurchaseDTO;
 import com.eventmanager.coreservice.adapter.mapper.PurchaseMapper;
 import com.eventmanager.coreservice.application.port.inbound.PurchaseServicePort;
 import com.eventmanager.coreservice.domain.model.Purchase;

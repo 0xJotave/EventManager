@@ -1,11 +1,12 @@
 package com.eventmanager.coreservice.application.port.inbound;
 
-import com.eventmanager.coreservice.adapter.dto.LoginRequestDTO;
-import com.eventmanager.coreservice.adapter.dto.UserRegistrationDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.LoginRequestDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.LoginResponseDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.UserRegistrationDTO;
 
 import java.util.Map;
 
 public interface AuthServicePort {
     void registerUser(UserRegistrationDTO dto);
-    Map<String, Object> login(LoginRequestDTO dto);
+    LoginResponseDTO login(LoginRequestDTO dto);
 }

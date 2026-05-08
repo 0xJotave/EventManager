@@ -1,7 +1,7 @@
 package com.eventmanager.coreservice.adapter.mapper;
 
-import com.eventmanager.coreservice.adapter.dto.CreateEventDTO;
-import com.eventmanager.coreservice.adapter.dto.ResponseEventDTO;
+import com.eventmanager.coreservice.adapter.dto.event.CreateEventDTO;
+import com.eventmanager.coreservice.adapter.dto.event.ResponseEventDTO;
 import com.eventmanager.coreservice.adapter.outbound.mongo.document.EventDocument;
 import com.eventmanager.coreservice.domain.model.Event;
 import org.mapstruct.Mapper;

@@ -21,8 +21,8 @@ public class GlobalExceptionHandler {
 
         ErrorResponse coreError = ex.getResponseBodyAs(ErrorResponse.class);
 
-        String message = (coreError != null && coreError.getMessage() != null)
-                ? coreError.getMessage()
+        String message = (coreError != null && coreError.message() != null)
+                ? coreError.message()
                 : "Error returned from Core Service";
 
         log.error("CoreService returned error: status={}, message={}",

@@ -1,7 +1,8 @@
 package com.eventmanager.coreservice.application.usecase;
 
-import com.eventmanager.coreservice.adapter.dto.LoginRequestDTO;
-import com.eventmanager.coreservice.adapter.dto.UserRegistrationDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.LoginRequestDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.LoginResponseDTO;
+import com.eventmanager.coreservice.adapter.dto.auth.UserRegistrationDTO;
 import com.eventmanager.coreservice.application.port.inbound.AuthServicePort;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -20,8 +22,20 @@ import java.util.Map;
 public class AuthService implements AuthServicePort {
 
     private final Keycloak keycloak;
-    private final String realmName = "event-manager-realm";
 
+    @Value("${app.keycloak.realm}")
+    private String realmName;
+
+    @Value("${app.keycloak.server-url}")
+    private String serverUrl;
+
+    @Value("${app.keycloak.client-id}")
+    private String clientId;
+
+    @Value("${app.keycloak.client-secret}")
+    private String clientSecret;
+
+    @Override
     public void registerUser(UserRegistrationDTO dto) {
         UserRepresentation user = new UserRepresentation();
         user.setEnabled(true);
@@ -29,7 +43,6 @@ public class AuthService implements AuthServicePort {
         user.setAttributes(Map.of("fullName", Collections.singletonList(dto.fullName())));
         user.setEmail(dto.email());
         user.setEmailVerified(true);
-
         user.setRequiredActions(Collections.emptyList());
 
         CredentialRepresentation credential = new CredentialRepresentation();
@@ -38,63 +51,34 @@ public class AuthService implements AuthServicePort {
         credential.setTemporary(false);
         user.setCredentials(Collections.singletonList(credential));
 
-        Response response = keycloak.realm(realmName).users().create(user);
-
-        if (response.getStatus() == 201) {
-            if (response.getStatus() == 201 || response.getStatus() == 200) {
-                String userId;
-
-                if (response.getLocation() != null) {
-                    userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
-                } else {
-                    userId = keycloak.realm(realmName).users().search(dto.username()).get(0).getId();
-                }
-
-                String roleToAssign = "admin".equalsIgnoreCase(dto.username()) ? "ADMIN" : "CUSTOMER";
-
-                try {
-                    var roleRepresentation = keycloak.realm(realmName)
-                            .roles()
-                            .get(roleToAssign)
-                            .toRepresentation();
-
-                    keycloak.realm(realmName)
-                            .users()
-                            .get(userId)
-                            .roles()
-                            .realmLevel()
-                            .add(Collections.singletonList(roleRepresentation));
-
-                    System.out.println("Role " + roleToAssign + " atribuída ao usuário: " + dto.username());
-
-                } catch (Exception e) {
-                    throw new RuntimeException("Erro ao atribuir role " + roleToAssign + ": " + e.getMessage());
-                }
+        try (Response response = keycloak.realm(realmName).users().create(user)) {
+            if (response.getStatus() != 201 && response.getStatus() != 200) {
+                throw new RuntimeException("Falha ao registrar usuário no Keycloak");
             }
         }
     }
 
-    public Map<String, Object> login(LoginRequestDTO dto) {
+    @Override
+    public LoginResponseDTO login(LoginRequestDTO dto) {
         try (Keycloak userKeycloak = KeycloakBuilder.builder()
-                .serverUrl("http://localhost:8082")
+                .serverUrl(serverUrl)
                 .realm(realmName)
                 .grantType(OAuth2Constants.PASSWORD)
-                .clientId("gateway-service")
-                .clientSecret("SqSFG41gbinOhUntX62K0GwPlgr5v26h")
+                .clientId(clientId)
+                .clientSecret(clientSecret)
                 .username(dto.username())
                 .password(dto.password())
                 .build()) {
 
             var token = userKeycloak.tokenManager().getAccessToken();
 
-            return Map.of(
-                    "access_token", token.getToken(),
-                    "expires_in", token.getExpiresIn(),
-                    "refresh_token", token.getRefreshToken(),
-                    "token_type", token.getTokenType()
+            return new LoginResponseDTO(
+                    token.getToken(),
+                    token.getRefreshToken(),
+                    token.getExpiresIn()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Login falhou: Usuário ou senha inválidos");
+            throw new RuntimeException("Login falhou");
         }
     }
 }

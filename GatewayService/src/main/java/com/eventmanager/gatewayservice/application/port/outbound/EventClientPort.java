@@ -1,8 +1,8 @@
 package com.eventmanager.gatewayservice.application.port.outbound;
 
-import com.eventmanager.gatewayservice.adapter.dto.EventRequestDTO;
-import com.eventmanager.gatewayservice.adapter.dto.EventResponseDTO;
-import com.eventmanager.gatewayservice.adapter.dto.UpdateEventDTO;
+import com.eventmanager.gatewayservice.adapter.dto.event.EventRequestDTO;
+import com.eventmanager.gatewayservice.adapter.dto.event.EventResponseDTO;
+import com.eventmanager.gatewayservice.adapter.dto.event.UpdateEventDTO;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
