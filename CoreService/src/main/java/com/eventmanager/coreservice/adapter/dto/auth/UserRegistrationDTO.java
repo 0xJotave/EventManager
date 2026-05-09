@@ -1,4 +1,4 @@
-package com.eventmanager.gatewayservice.adapter.dto;
+package com.eventmanager.coreservice.adapter.dto.auth;
 
 public record UserRegistrationDTO(
         String username,

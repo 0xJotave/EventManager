@@ -1,4 +1,4 @@
-package com.eventmanager.gatewayservice.adapter.dto;
+package com.eventmanager.coreservice.adapter.dto.event;
 
 import java.math.BigDecimal;
 

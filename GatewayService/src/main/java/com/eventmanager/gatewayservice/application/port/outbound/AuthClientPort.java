@@ -1,12 +1,12 @@
 package com.eventmanager.gatewayservice.application.port.outbound;
 
-import com.eventmanager.gatewayservice.adapter.dto.LoginRequestDTO;
-import com.eventmanager.gatewayservice.adapter.dto.UserRegistrationDTO;
+import com.eventmanager.gatewayservice.adapter.dto.auth.LoginRequestDTO;
+import com.eventmanager.gatewayservice.adapter.dto.auth.LoginResponseDTO;
+import com.eventmanager.gatewayservice.adapter.dto.auth.UserRegistrationDTO;
 import reactor.core.publisher.Mono;
-
-import java.util.Map;
 
 public interface AuthClientPort {
     Mono<Void> signUp(UserRegistrationDTO dto);
-    Mono<Map> login(LoginRequestDTO dto);
+
+    Mono<LoginResponseDTO> login(LoginRequestDTO dto);
 }

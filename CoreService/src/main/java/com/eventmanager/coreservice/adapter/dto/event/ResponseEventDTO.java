@@ -1,4 +1,4 @@
-package com.eventmanager.coreservice.adapter.dto;
+package com.eventmanager.coreservice.adapter.dto.event;
 
 import java.time.LocalDateTime;
 import java.util.List;

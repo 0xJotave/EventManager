@@ -1,4 +1,4 @@
-package com.eventmanager.gatewayservice.adapter.dto;
+package com.eventmanager.gatewayservice.adapter.dto.event;
 
 import java.time.LocalDateTime;
 import java.util.List;

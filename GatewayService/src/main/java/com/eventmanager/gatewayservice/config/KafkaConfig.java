@@ -1,5 +1,6 @@
 package com.eventmanager.gatewayservice.config;
 
+import com.eventmanager.gatewayservice.adapter.dto.purchase.KafkaPurchaseDTO;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +20,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> producerFactory) {
+    public KafkaTemplate<String, KafkaPurchaseDTO> kafkaTemplate(ProducerFactory<String, KafkaPurchaseDTO> producerFactory) {
         return new KafkaTemplate<>(producerFactory);
     }
 }

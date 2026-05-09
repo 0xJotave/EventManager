@@ -3,13 +3,10 @@ spring:
     name: GatewayService
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST}
       port: 6379
   kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
     consumer:
       group-id: gateway-service-group
       auto-offset-reset: earliest
@@ -17,33 +14,22 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "com.eventmanager.*"
-
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-    deserialization:
-      fail-on-unknown-properties: false
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8082/realms/event-manager-realm
-          jwk-set-uri: http://localhost:8082/realms/event-manager-realm/protocol/openid-connect/certs
-      client:
-        registration:
-          gateway-service:
-            provider: keycloak
-            client-id: gateway-service
-            client-secret: Cq5E18kGVNljkXPD7yXY5BJPbutyStI9
-            authorization-grant-type: authorization_code
-            scope: openid, profile, email
-        provider:
-          keycloak:
-            issuer-uri: http://localhost:8082/realms/event-manager-realm
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    security:
+      oauth2:
+        resourceserver:
+          jwt:
+            issuer-uri: ${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}
 
 server:
   port: 8080
 
-core-service:
-  url: http://localhost:8081
+app:
+  keycloak:
+    server-url: ${KEYCLOAK_URL}
+    realm: ${KEYCLOAK_REALM}
+    client-id: ${GATEWAY_CLIENT_ID}
+    client-secret: ${GATEWAY_CLIENT_SECRET}
+    core-url: ${CORE_SERVICE_URL:http://localhost:8081}

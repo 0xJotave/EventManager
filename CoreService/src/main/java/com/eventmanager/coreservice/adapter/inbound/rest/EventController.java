@@ -1,8 +1,8 @@
 package com.eventmanager.coreservice.adapter.inbound.rest;
 
-import com.eventmanager.coreservice.adapter.dto.CreateEventDTO;
-import com.eventmanager.coreservice.adapter.dto.ResponseEventDTO;
-import com.eventmanager.coreservice.adapter.dto.UpdateEventDTO;
+import com.eventmanager.coreservice.adapter.dto.event.CreateEventDTO;
+import com.eventmanager.coreservice.adapter.dto.event.ResponseEventDTO;
+import com.eventmanager.coreservice.adapter.dto.event.UpdateEventDTO;
 import com.eventmanager.coreservice.adapter.mapper.EventMapper;
 import com.eventmanager.coreservice.application.port.inbound.EventServicePort;
 import com.eventmanager.coreservice.domain.model.Event;

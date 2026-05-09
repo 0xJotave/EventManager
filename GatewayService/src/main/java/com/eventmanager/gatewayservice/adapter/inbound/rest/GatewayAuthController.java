@@ -1,8 +1,8 @@
 package com.eventmanager.gatewayservice.adapter.inbound.rest;
 
-import com.eventmanager.gatewayservice.adapter.dto.LoginRequestDTO;
-import com.eventmanager.gatewayservice.adapter.dto.UserRegistrationDTO;
-import com.eventmanager.gatewayservice.adapter.outbound.client.AuthClient;
+import com.eventmanager.gatewayservice.adapter.dto.auth.LoginRequestDTO;
+import com.eventmanager.gatewayservice.adapter.dto.auth.LoginResponseDTO;
+import com.eventmanager.gatewayservice.adapter.dto.auth.UserRegistrationDTO;
 import com.eventmanager.gatewayservice.application.port.outbound.AuthClientPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,12 +21,12 @@ public class GatewayAuthController {
     private final AuthClientPort authClientPort;
 
     @PostMapping("/signup")
-    public Mono<Void> signUp(@RequestBody UserRegistrationDTO dto) {
-        return authClientPort.signUp(dto);
+    public Mono<Void> signUp(@RequestBody UserRegistrationDTO userRegistrationDTO) {
+        return authClientPort.signUp(userRegistrationDTO);
     }
 
     @PostMapping("/login")
-    public Mono<Map> login(@RequestBody LoginRequestDTO dto) {
-        return authClientPort.login(dto);
+    public Mono<LoginResponseDTO> login(@RequestBody LoginRequestDTO userRegistrationDTO) {
+        return authClientPort.login(userRegistrationDTO);
     }
 }

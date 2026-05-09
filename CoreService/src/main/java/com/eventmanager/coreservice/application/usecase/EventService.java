@@ -1,6 +1,6 @@
 package com.eventmanager.coreservice.application.usecase;
 
-import com.eventmanager.coreservice.adapter.dto.UpdateEventDTO;
+import com.eventmanager.coreservice.adapter.dto.event.UpdateEventDTO;
 import com.eventmanager.coreservice.application.port.inbound.EventServicePort;
 import com.eventmanager.coreservice.application.port.outbound.EventRepositoryAdapterPort;
 import com.eventmanager.coreservice.application.port.outbound.RedisServicePort;

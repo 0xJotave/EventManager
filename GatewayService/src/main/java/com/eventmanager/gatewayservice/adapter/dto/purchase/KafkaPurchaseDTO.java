@@ -1,17 +1,15 @@
-package com.eventmanager.coreservice.adapter.dto;
-
-import com.eventmanager.coreservice.domain.enums.Status;
+package com.eventmanager.gatewayservice.adapter.dto.purchase;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record ResponsePurchaseDTO(
+public record KafkaPurchaseDTO(
         String purchaseId,
         String customerName,
         String eventId,
         String ticketId,
         Integer quantity,
-        Status status,
+        String status,
         BigDecimal totalAmount,
         LocalDateTime createdAt
 ) {

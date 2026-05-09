@@ -22,16 +22,21 @@ public class SecurityConfig {
         http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
+                        
                         .pathMatchers("/actuator/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/gateway/auth/**").permitAll()
 
-                        .pathMatchers(HttpMethod.GET, "/gateway/events/**").hasAnyRole("ADMIN", "CUSTOMER")
-                        .pathMatchers("/gateway/events/**").hasRole("ADMIN")
+                        .pathMatchers(HttpMethod.GET, "/gateway/events/**")
+                        .hasAnyRole("ADMIN", "CUSTOMER")
 
-                        .pathMatchers(HttpMethod.POST, "/gateway/purchases/**").hasAnyRole("ADMIN", "CUSTOMER")
-                        .pathMatchers(HttpMethod.GET, "/gateway/purchases/my-orders").hasAnyRole("ADMIN", "CUSTOMER")
-                        .pathMatchers(HttpMethod.DELETE, "/gateway/purchases/**").hasAnyRole("ADMIN", "CUSTOMER")
-                        .pathMatchers("/gateway/purchases/**").hasRole("ADMIN")
+                        .pathMatchers("/gateway/events/**")
+                        .hasAnyRole("ADMIN", "CUSTOMER")
+
+                        .pathMatchers(HttpMethod.GET, "/gateway/purchases/my-orders")
+                        .hasAnyRole("ADMIN", "CUSTOMER")
+
+                        .pathMatchers("/gateway/purchases/**")
+                        .hasAnyRole("ADMIN", "CUSTOMER")
 
                         .anyExchange().authenticated()
                 )

@@ -1,9 +1,9 @@
-package com.eventmanager.gatewayservice.adapter.dto;
+package com.eventmanager.coreservice.adapter.dto.purchase;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record PurchaseResponseDTO(
+public record KafkaPurchaseDTO(
         String purchaseId,
         String customerName,
         String eventId,
